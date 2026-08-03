@@ -20,47 +20,59 @@ env:
 
 jobs:
   Build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Check Server Performance
       run: |
         echo "警告⚠"
         echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
-        echo -e "已知CPU型号(降序): 7763，8370C，8272CL，8171M，E5-2673\n"
         echo "--------------------------CPU信息--------------------------"
         echo "CPU物理数量: $(cat /proc/cpuinfo | grep "physical id" | sort | uniq | wc -l)"
         echo "CPU核心数量: $(nproc)"
         echo -e "CPU型号信息:$(cat /proc/cpuinfo | grep -m1 name | awk -F: '{print $2}')\n"
         echo "--------------------------内存信息--------------------------"
         echo "已安装内存详细信息:"
-        echo -e "$(sudo lshw -short -C memory | grep GiB)\n"
+        free -h
         echo "--------------------------硬盘信息--------------------------"
-        echo "硬盘数量: $(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
+        df -hT
 
     - name: Initialization Environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        docker rmi $(docker images -q)
+        docker rmi $(docker images -q) || true
         sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android $AGENT_TOOLSDIRECTORY
         sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
         sudo -E apt-get -y update
-        sudo -E apt-get -y install $(curl -fsSL is.gd/depends_ubuntu_2204)
-        sudo -E systemctl daemon-reload
+        sudo -E apt-get -y install \
+          ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex \
+          gawk gettext genisoimage git gnutls-dev gperf haveged help2man intltool \
+          jq libc6-dev libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev \
+          libmpc-dev libmpfr-dev libncurses-dev libpython3-dev libreadline-dev \
+          libssl-dev libtool libyaml-dev libz-dev lrzsz msmtp nano \
+          ninja-build p7zip p7zip-full patch pkgconf python3 python3-cryptography \
+          python3-docutils python3-pip python3-pyelftools python3-setuptools \
+          qemu-utils quilt re2c rsync scons sharutils subversion swig \
+          texinfo uglifyjs unzip vim wget xmlto xxd zlib1g-dev zstd
         sudo -E apt-get -y autoremove --purge
         sudo -E apt-get -y clean
         sudo timedatectl set-timezone "$TZ"
 
-    - name: Combine Disks
-      uses: easimon/maximize-build-space@master
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
       with:
-        swap-size-mb: 1024
-        temp-reserve-mb: 100
-        root-reserve-mb: 1024
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
 
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
 
     - name: Clone Source Code
       run: |
@@ -142,7 +154,7 @@ jobs:
 
     - name: Upload Bin Directory
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
-      uses: actions/upload-artifact@main
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.SOURCE_REPO }}-bin-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
         path: ${{ env.OPENWRT_PATH }}/bin
@@ -161,7 +173,7 @@ jobs:
 
     - name: Upload Firmware To Artifact
       if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE != 'true'
-      uses: actions/upload-artifact@main
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.SOURCE_REPO }}-firmware-${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}-${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE_PATH }}
