@@ -42,6 +42,9 @@ git_sparse_clone openwrt-18.06 https://github.com/immortalwrt/luci applications/
 
 # 科学上网插件
 git clone --depth=1 -b main https://github.com/fw876/helloworld package/luci-app-ssr-plus
+# 修复 gn 在 GCC 13+ 下的 -Werror=redundant-move 编译错误（NaiveProxy 的 host 依赖）
+mkdir -p package/luci-app-ssr-plus/gn/patches
+cp -f $GITHUB_WORKSPACE/scripts/001-fix-gn-redundant-move.patch package/luci-app-ssr-plus/gn/patches/001-fix-gn-redundant-move.patch
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
