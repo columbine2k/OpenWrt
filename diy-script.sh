@@ -3,6 +3,9 @@
 # 修改默认IP
 sed -i 's/192.168.1.1/192.168.0.200/g' package/base-files/files/bin/config_generate
 
+# 修改 uhttpd 监听端口（HTTP 1000 / HTTPS 1001），把 80/443 让给 Nginx Proxy Manager
+sed -i 's/0\.0\.0\.0:80/0.0.0.0:1000/g; s/\[::\]:80/[::]:1000/g; s/0\.0\.0\.0:443/0.0.0.0:1001/g; s/\[::\]:443/[::]:1001/g' package/network/services/uhttpd/files/uhttpd.config
+
 # 更改默认 Shell 为 zsh
 # sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
 
@@ -26,7 +29,6 @@ function git_sparse_clone() {
 
 # 添加额外插件
 git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
-git clone --depth=1 https://github.com/destan19/OpenAppFilter package/OpenAppFilter
 git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 git_sparse_clone main https://github.com/Lienol/openwrt-package luci-app-filebrowser
 git_sparse_clone openwrt-18.06 https://github.com/immortalwrt/luci applications/luci-app-eqos
