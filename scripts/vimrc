@@ -1,0 +1,106 @@
+" === 基础 =======================================
+set nocompatible
+set backspace=indent,eol,start
+set history=2000
+set autoread
+set magic
+set title
+" 语法
+syntax on
+filetype on
+filetype plugin on
+filetype indent on
+" tab
+set expandtab
+set smarttab
+set shiftround
+" 缩进
+set autoindent smartindent shiftround
+set shiftwidth=4
+set tabstop=4
+set softtabstop=4
+
+" === 编辑 =======================================
+" 鼠标
+" set mouse=a
+" 编码
+set encoding=utf-8
+set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
+set termencoding=utf-8
+set ffs=unix,dos,mac
+set formatoptions+=m
+set formatoptions+=B
+autocmd BufRead,BufNew *.md,*.mkd,*.markdown  set filetype=markdown.mkd
+" 补全
+set selection=inclusive
+set selectmode=mouse,key
+set completeopt=longest,menu
+set wildmenu
+set wildmode=longest,list,full
+set wildignore=*.o,*~,*.pyc,*.class
+" 自动保存
+autocmd BufWritePre <buffer> :call <SID>StripTrailingWhitespaces()
+fun! <SID>StripTrailingWhitespaces()
+    let l = line(".")
+    let c = col(".")
+    %s/\s\+$//e
+    call cursor(l, c)
+endfun
+
+" === 显示 =======================================
+" 光标
+set cursorcolumn
+set cursorline
+" 界面
+set ruler
+set number
+set relativenumber
+set nowrap
+set showcmd
+set showmode
+set showmatch
+set matchtime=2
+set splitright
+set splitbelow
+" 滚动保留
+set scrolloff=7
+" 搜索
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+
+" === 个性 =======================================
+" 主题
+set termguicolors
+set background=dark
+colorscheme vim-material
+" 标记栏颜色
+hi! link SignColumn   LineNr
+hi! link ShowMarksHLl DiffAdd
+hi! link ShowMarksHLu DiffChange
+" 状态栏
+"set statusline=%<%f\ %h%m%r%=%k[%{(&fenc==\"\")?&enc:&fenc}%{(&bomb?\",BOM\":\"\")}]\ %-14.(%l,%c%V%)\ %P
+set laststatus=2
+
+" === 键位 =======================================
+" 主键
+let mapleader=' '
+let g:mapleader=' '
+" Netrw
+nmap <leader>e :Ex<CR>
+" 取消高亮
+nmap <leader>n :nohl<CR>
+" 新增窗口
+nmap <leader>sv <C-w>v
+nmap <leader>sh <C-w>s
+" 单行或多行移动
+vmap K :m '<-2<CR>gv=gv
+vmap J :m '>+1<CR>gv=gv
+vmap H <gv
+vmap L >gv
+
+" === 插件 =======================================
+let g:lightline = {
+\ 'colorscheme': 'material_vim'
+\ }
