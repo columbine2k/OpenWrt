@@ -15,9 +15,7 @@
 - 固件构成：[![Lean](https://img.shields.io/badge/Lede-Lean-ff69b4.svg?style=flat&logo=appveyor)](https://github.com/coolsnowwolf/lede) [![P3TERX](https://img.shields.io/badge/OpenWrt-P3TERX-blueviolet.svg?style=flat&logo=appveyor)](https://github.com/P3TERX/Actions-OpenWrt) [![Flippy](https://img.shields.io/badge/Package-Flippy-orange.svg?style=flat&logo=appveyor)](https://github.com/unifreq/openwrt_packit) [![Haiibo](https://img.shields.io/badge/Build-Haiibo-32C955.svg?style=flat&logo=appveyor)](https://github.com/columbine2k/OpenWrt)
 - 项目使用 Github Actions 拉取 [Lean](https://github.com/coolsnowwolf/lede) 的 Openwrt 源码仓库进行云编译
 - 固件默认管理地址：`192.168.1.1` 默认用户：`root` 默认密码：`password`
-- 提供适配于 ARMv8 电视盒子、Rockchip 平台、树莓派以及 X86 平台设备的 OpenWrt 固件
-- ARMv8 盒子固件分为 [Mini版](https://github.com/columbine2k/OpenWrt/releases/tag/ARMv8_MINI) 和 [Plus版](https://github.com/columbine2k/OpenWrt/releases/tag/ARMv8_PLUS)，Mini 精简版以科学上网为主，Plus 多功能版插件多适合折腾
-- ARMv8 系列固件包含 [F大](https://github.com/unifreq/openwrt_packit) 发布的所有已适配的盒子固件，并提供 Docker 镜像固件[➦使用方法](https://hub.docker.com/r/summary/openwrt-aarch64)
+- 提供适配于 Rockchip 平台以及 X86 平台设备的 OpenWrt 固件
 - 固件集成的所有 ipk 插件全部打包在 Packages 文件中，可以在 [Releases](https://github.com/columbine2k/OpenWrt/releases) 内进行下载
 - 项目编译的固件插件为最新版本，最新版插件可能有 BUG，如果之前使用稳定则无需追新
 - 第一次使用请采用全新安装，避免出现升级失败以及其他一些可能的 BUG
@@ -31,7 +29,6 @@
 5. 集成 Docker 服务，可在 OpenWrt 内自由部署 Docker 应用
 6. 集成应用过滤插件，支持游戏、视频、聊天、下载等 APP 过滤
 7. 集成在线用户插件，可查看所有在线用户 IP 地址与实时速率等
-8. ARMv8 系列固件内置晶晨宝盒，支持在线更新固件及内核等
 
 
 ## 固件下载 [![](https://img.shields.io/badge/-编译状态及下载链接-FFFFFF.svg)](#固件下载-)
@@ -47,18 +44,6 @@
 
 
 ## 插件预览 [![](https://img.shields.io/badge/-固件插件及功能预览-FFFFFF.svg)](#插件预览-)
-<details>
-<summary><b>&nbsp;ARMv8 盒子 Mini 精简版本插件预览</b></summary>
-<br/>
-<img src="https://cdn.jsdelivr.net/gh/columbine2k/OpenWrt/images/mini.png"/>
-</details>
-
-<details>
-<summary><b>&nbsp;ARMv8 盒子 Plus 多功能版插件预览</b></summary>
-<br/>
-<img src="https://cdn.jsdelivr.net/gh/columbine2k/OpenWrt/images/plus.png"/>
-</details>
-
 <details>
 <summary><b>&nbsp;X86、R2S、R4S 等软路由插件预览</b></summary>
 <br/>
