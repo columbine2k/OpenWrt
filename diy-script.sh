@@ -65,5 +65,30 @@ find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/lang
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_URL:=@GHREPO/PKG_SOURCE_URL:=https:\/\/github.com/g' {}
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_URL:=@GHCODELOAD/PKG_SOURCE_URL:=https:\/\/codeload.github.com/g' {}
 
+# 为 Docker 启用完整 cgroup 支持，消除 docker info 中的 WARNING
+# （No swap/cpu cfs/cpu shares/io.weight/io.max support）
+for _kcfg in target/linux/rockchip/armv8/config-*; do
+	[ -f "$_kcfg" ] || continue
+	for _opt in CONFIG_CGROUPS CONFIG_CGROUP_SCHED CONFIG_FAIR_GROUP_SCHED \
+	            CONFIG_CFS_BANDWIDTH CONFIG_MEMCG CONFIG_MEMCG_SWAP CONFIG_BLK_CGROUP; do
+		grep -q "^${_opt}=" "$_kcfg" 2>/dev/null || echo "${_opt}=y" >> "$_kcfg"
+	done
+done
+
 ./scripts/feeds update -a
 ./scripts/feeds install -a
+
+# 修复 samba4-server 与 autosamba 的文件冲突：
+# 两者都会安装 /etc/hotplug.d/block/20-smb，导致 package/install 报
+# check_data_file_clashes 失败；这里去掉 samba4-server 自带的 hotplug 脚本，
+# 保留 autosamba 的
+_samba4_makefile="feeds/packages/net/samba4/Makefile"
+[ -f "$_samba4_makefile" ] && sed -i '/etc\/hotplug\.d\/block/d' "$_samba4_makefile"
+
+# 新版 Dockerman（ucode/JS 版）默认把菜单挂在“服务”下，标题为 Dockerman JS；
+# 这里把它挪回顶层“Docker”栏目，还原 24.02.19 时代的布局
+_dockerman_menu="feeds/luci/applications/luci-app-dockerman/root/usr/share/luci/menu.d/luci-app-dockerman.json"
+[ -f "$_dockerman_menu" ] && sed -i \
+	-e 's#admin/services/dockerman#admin/docker#g' \
+	-e 's#"Dockerman JS"#"Docker"#g' \
+	"$_dockerman_menu"
