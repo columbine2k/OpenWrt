@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Set default theme to luci-theme-aurora
-uci set luci.main.mediaurlbase='/luci-static/aurora'
+# Set default theme to luci-theme-argon
+uci set luci.main.mediaurlbase='/luci-static/argon'
 uci commit luci
 
 # Disable IPV6 ula prefix

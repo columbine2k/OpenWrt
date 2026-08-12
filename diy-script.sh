@@ -34,7 +34,8 @@ git_sparse_clone main https://github.com/Lienol/openwrt-package luci-app-filebro
 # git_sparse_clone master https://github.com/syb999/openwrt-19.07.1 package/network/services/msd_lite
 
 # Themes
-git clone --depth=1 https://github.com/eamonxg/luci-theme-aurora package/luci-theme-aurora
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
+git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
 
 # 在线用户
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
@@ -74,6 +75,9 @@ for _kcfg in target/linux/rockchip/armv8/config-*; do
 		grep -q "^${_opt}=" "$_kcfg" 2>/dev/null || echo "${_opt}=y" >> "$_kcfg"
 	done
 done
+
+# 取消主题默认设置
+find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/set luci.main.mediaurlbase/d' {} \;
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
