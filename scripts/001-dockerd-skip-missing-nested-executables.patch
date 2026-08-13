@@ -1,0 +1,11 @@
+--- a/hack/make/binary-daemon
++++ b/hack/make/binary-daemon
+@@ -16,5 +16,7 @@
+ 	fi
+ 	echo "Copying nested executables into $dir"
+ 	for file in containerd containerd-shim-runc-v2 ctr runc docker-init rootlesskit dockerd-rootless.sh dockerd-rootless-setuptool.sh; do
+-		cp -f "$(command -v "$file")" "$dir/"
++		if [ -x "$(command -v "$file")" ]; then
++			cp -f "$(command -v "$file")" "$dir/"
++		fi
+ 	done

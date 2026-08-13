@@ -96,3 +96,14 @@ _dockerman_menu="feeds/luci/applications/luci-app-dockerman/root/usr/share/luci/
 	-e 's#admin/services/dockerman#admin/docker#g' \
 	-e 's#"Dockerman JS"#"Docker"#g' \
 	"$_dockerman_menu"
+
+# 修复 x86_64 原生架构构建 dockerd 失败：
+# moby 的 hack/make/binary-daemon 在 GOOS/GOARCH == 宿主机架构时会执行
+# copy_binaries，把 containerd/docker-init/rootlesskit 等复制进 bundle；
+# GitHub Runner 的 PATH 里没有 docker-init/rootlesskit 等，command -v 返回空，
+# cp -f "" 直接报错（Rockchip 是交叉编译，不会走到这段，所以能过）。
+# 补丁给每个文件加 -x 判断，缺失时跳过。OpenWrt 打包并不使用这些嵌套可执行文件，
+# containerd/runc/tini 由独立的 OpenWrt 包提供，因此跳过无影响。
+mkdir -p feeds/packages/utils/dockerd/patches
+cp -f $GITHUB_WORKSPACE/scripts/001-dockerd-skip-missing-nested-executables.patch \
+	feeds/packages/utils/dockerd/patches/001-dockerd-skip-missing-nested-executables.patch
