@@ -1,0 +1,22 @@
+--- a/package/lean/autocore/files/arm/index.htm	2026-08-13 19:14:19
++++ b/package/lean/autocore/files/arm/index.htm	2026-08-13 19:15:37
+@@ -66,7 +66,7 @@
+ 			ethinfo    = eth_info,
+ 			userinfo   = user_info,
+ 			uptime     = sysinfo.uptime or 0,
+-			localtime  = os.date(),
++			localtime  = os.date("%a %Y-%m-%d %H:%M:%S"),
+ 			loadavg    = sysinfo.load or { 0, 0, 0 },
+ 			memory     = meminfo,
+ 			memcached  = mem_cached,
+--- a/package/lean/autocore/files/x86/index.htm	2026-08-13 19:14:21
++++ b/package/lean/autocore/files/x86/index.htm	2026-08-13 19:15:37
+@@ -60,7 +60,7 @@
+ 			ethinfo    = eth_info,
+ 			userinfo    = user_info,
+ 			uptime     = sysinfo.uptime or 0,
+-			localtime  = os.date(),
++			localtime  = os.date("%a %Y-%m-%d %H:%M:%S"),
+ 			loadavg    = sysinfo.load or { 0, 0, 0 },
+ 			memory     = meminfo,
+ 			memcached  = mem_cached,

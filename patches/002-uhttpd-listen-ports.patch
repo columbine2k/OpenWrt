@@ -1,0 +1,19 @@
+--- a/package/network/services/uhttpd/files/uhttpd.config	2026-08-13 19:10:14
++++ b/package/network/services/uhttpd/files/uhttpd.config	2026-08-13 19:15:37
+@@ -2,12 +2,12 @@
+ config uhttpd main
+ 
+ 	# HTTP listen addresses, multiple allowed
+-	list listen_http	0.0.0.0:80
+-	list listen_http	[::]:80
++	list listen_http	0.0.0.0:1000
++	list listen_http	[::]:1000
+ 
+ 	# HTTPS listen addresses, multiple allowed
+-	list listen_https	0.0.0.0:443
+-	list listen_https	[::]:443
++	list listen_https	0.0.0.0:1001
++	list listen_https	[::]:1001
+ 
+ 	# Redirect HTTP requests to HTTPS if possible
+ 	option redirect_https	0

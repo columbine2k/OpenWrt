@@ -1,0 +1,11 @@
+--- a/feeds/packages/net/samba4/Makefile	2026-08-13 19:14:22
++++ b/feeds/packages/net/samba4/Makefile	2026-08-13 19:15:37
+@@ -441,8 +441,6 @@
+ 	$(INSTALL_DIR) $(1)/etc/uci-defaults
+ 	$(INSTALL_BIN) ./files/uci_defaults_samba $(1)/etc/uci-defaults/99_uci_defaults_samba
+ 
+-	$(INSTALL_DIR)	$(1)/etc/hotplug.d/block
+-	$(INSTALL_DATA) ./files/smb.auto $(1)/etc/hotplug.d/block/20-smb
+ endef
+ 
+ define Package/samba4-server/conffiles

@@ -1,21 +1,23 @@
 #!/bin/bash
 
-# 修改默认IP
-sed -i 's/192.168.1.1/192.168.0.200/g' package/base-files/files/bin/config_generate
-
-# 修改 uhttpd 监听端口（HTTP 1000 / HTTPS 1001），把 80/443 让给 Nginx Proxy Manager
-sed -i 's/0\.0\.0\.0:80/0.0.0.0:1000/g; s/\[::\]:80/[::]:1000/g; s/0\.0\.0\.0:443/0.0.0.0:1001/g; s/\[::\]:443/[::]:1001/g' package/network/services/uhttpd/files/uhttpd.config
-
-# 更改默认 Shell 为 zsh
-# sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
-
-# TTYD 免登录
-# sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
+# ============================================================
+# diy-script：编译前对 OpenWrt/LEDE 源码做定制
+#
+# 约定：
+#   - 对上游文件的具体修改一律做成补丁放在 patches/*.patch，
+#     本脚本统一用 git apply 应用（见下方“统一应用补丁”）
+#   - 只有批量/动态改动保留为脚本：插件克隆、Makefile 批量重写、
+#     编译日期版本号、主题默认值清理
+# ============================================================
 
 # 移除要替换的包
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-netgear
 rm -rf feeds/luci/applications/luci-app-netdata
+
+# 可选开关（默认关闭，需要时取消注释）
+# sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
+# sed -i 's|/bin/login|/bin/login -f root|g' feeds/packages/utils/ttyd/files/ttyd.config
 
 # Git稀疏克隆，只克隆指定目录到本地
 function git_sparse_clone() {
@@ -39,71 +41,51 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 
 # 在线用户
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
-sed -i '$i uci set nlbwmon.@nlbwmon[0].refresh_interval=2s' package/lean/default-settings/files/zzz-default-settings
-sed -i '$i uci commit nlbwmon' package/lean/default-settings/files/zzz-default-settings
 chmod 755 package/luci-app-onliner/root/usr/share/onliner/setnlbw.sh
 
-# x86 型号只显示 CPU 型号
-sed -i 's/${g}.*/${a}${b}${c}${d}${e}${f}${hydrid}/g' package/lean/autocore/files/x86/autocore
-
-# 修改本地时间格式
-sed -i 's/os.date()/os.date("%a %Y-%m-%d %H:%M:%S")/g' package/lean/autocore/files/*/index.htm
-
-# 修改版本为编译日期
+# 修改版本为编译日期（动态内容，不能写成静态补丁）
 date_version=$(date +"%y.%m.%d")
 orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
 sed -i "s/${orig_version}/R${date_version}/g" package/lean/default-settings/files/zzz-default-settings
 
-# 修复 hostapd 报错
-cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
-
-# 修复 armv8 设备 xfsprogs 报错
-sed -i 's/TARGET_CFLAGS.*/TARGET_CFLAGS += -DHAVE_MAP_SYNC -D_LARGEFILE64_SOURCE/g' feeds/packages/utils/xfsprogs/Makefile
-
-# 修改 Makefile
+# 批量 Makefile 重写（面向多个动态克隆的包，保留脚本方式）
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/lang\/golang\/golang-package.mk/$(TOPDIR)\/feeds\/packages\/lang\/golang\/golang-package.mk/g' {}
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_URL:=@GHREPO/PKG_SOURCE_URL:=https:\/\/github.com/g' {}
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/PKG_SOURCE_URL:=@GHCODELOAD/PKG_SOURCE_URL:=https:\/\/codeload.github.com/g' {}
 
-# 为 Docker 启用完整 cgroup 支持，消除 docker info 中的 WARNING
-# （No swap/cpu cfs/cpu shares/io.weight/io.max support）
-for _kcfg in target/linux/rockchip/armv8/config-*; do
-	[ -f "$_kcfg" ] || continue
-	for _opt in CONFIG_CGROUPS CONFIG_CGROUP_SCHED CONFIG_FAIR_GROUP_SCHED \
-	            CONFIG_CFS_BANDWIDTH CONFIG_MEMCG CONFIG_MEMCG_SWAP CONFIG_BLK_CGROUP; do
-		grep -q "^${_opt}=" "$_kcfg" 2>/dev/null || echo "${_opt}=y" >> "$_kcfg"
-	done
-done
-
-# 取消主题默认设置
+# 取消主题默认设置（批量处理所有主题，保留脚本方式）
 find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/set luci.main.mediaurlbase/d' {} \;
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-# 修复 samba4-server 与 autosamba 的文件冲突：
-# 两者都会安装 /etc/hotplug.d/block/20-smb，导致 package/install 报
-# check_data_file_clashes 失败；这里去掉 samba4-server 自带的 hotplug 脚本，
-# 保留 autosamba 的
-_samba4_makefile="feeds/packages/net/samba4/Makefile"
-[ -f "$_samba4_makefile" ] && sed -i '/etc\/hotplug\.d\/block/d' "$_samba4_makefile"
+# —— 统一应用补丁（patches/*.patch，路径相对 openwrt 根目录）——
+# 已应用过的补丁会被 git apply --reverse --check 识别并跳过，重复构建安全；
+# 真正冲突的补丁会直接报错退出，避免“悄悄漏改”
+_patch_dir="$GITHUB_WORKSPACE/patches"
+for _patch in "$_patch_dir"/*.patch; do
+	[ -f "$_patch" ] || continue
+	echo "Applying $(basename "$_patch")"
+	if (cd "$OPENWRT_PATH" && git apply --reverse --check "$_patch" >/dev/null 2>&1); then
+		echo "  already applied, skip"
+	elif (cd "$OPENWRT_PATH" && git apply "$_patch"); then
+		:
+	else
+		echo "ERROR: failed to apply $_patch" >&2
+		exit 1
+	fi
+done
 
-# 新版 Dockerman（ucode/JS 版）默认把菜单挂在“服务”下，标题为 Dockerman JS；
-# 这里把它挪回顶层“Docker”栏目，还原 24.02.19 时代的布局
-_dockerman_menu="feeds/luci/applications/luci-app-dockerman/root/usr/share/luci/menu.d/luci-app-dockerman.json"
-[ -f "$_dockerman_menu" ] && sed -i \
-	-e 's#admin/services/dockerman#admin/docker#g' \
-	-e 's#"Dockerman JS"#"Docker"#g' \
-	"$_dockerman_menu"
+# cgroupfs-mount 开机脚本整体替换（完整文件，直接复制而非补丁）
+_cgroupfs_init="feeds/packages/utils/cgroupfs-mount/files/cgroupfs-mount.init"
+if [ -f "$_cgroupfs_init" ]; then
+	cp -f "$_patch_dir/cgroupfs-mount.init" "$_cgroupfs_init"
+fi
 
-# 修复 x86_64 原生架构构建 dockerd 失败：
-# moby 的 hack/make/binary-daemon 在 GOOS/GOARCH == 宿主机架构时会执行
-# copy_binaries，把 containerd/docker-init/rootlesskit 等复制进 bundle；
-# GitHub Runner 的 PATH 里没有 docker-init/rootlesskit 等，command -v 返回空，
-# cp -f "" 直接报错（Rockchip 是交叉编译，不会走到这段，所以能过）。
-# 补丁给每个文件加 -x 判断，缺失时跳过。OpenWrt 打包并不使用这些嵌套可执行文件，
-# containerd/runc/tini 由独立的 OpenWrt 包提供，因此跳过无影响。
+# hostapd / dockerd 的补丁走 OpenWrt 包自身的 patches/ 机制
+# （构建对应包时自动应用），因此单独复制而不是在上面的循环里打
+cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
 mkdir -p feeds/packages/utils/dockerd/patches
 cp -f $GITHUB_WORKSPACE/scripts/001-dockerd-skip-missing-nested-executables.patch \
 	feeds/packages/utils/dockerd/patches/001-dockerd-skip-missing-nested-executables.patch

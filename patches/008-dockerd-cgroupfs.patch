@@ -1,0 +1,10 @@
+--- a/feeds/packages/utils/dockerd/Config.in	2026-08-13 19:15:37
++++ b/feeds/packages/utils/dockerd/Config.in	2026-08-13 19:15:46
+@@ -23,7 +23,6 @@
+ 	select KERNEL_NET_CLS_CGROUP
+ 	select KERNEL_CGROUP_NET_PRIO
+ 	select KERNEL_POSIX_MQUEUE
+-	select PACKAGE_cgroupfs-mount
+ 	help
+ 		Selects kernel options to enable CGroups V1.
+ 

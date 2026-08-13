@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+
+START=01
+
+boot() {
+	# 不再卸载 cgroup2，保留 procd 挂载的 v2 层级
+	:
+}

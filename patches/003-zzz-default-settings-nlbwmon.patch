@@ -1,0 +1,9 @@
+--- a/package/lean/default-settings/files/zzz-default-settings	2026-08-13 19:10:15
++++ b/package/lean/default-settings/files/zzz-default-settings	2026-08-13 19:15:46
+@@ -62,4 +62,6 @@
+ rm -rf /tmp/luci-modulecache/
+ rm -f /tmp/luci-indexcache
+ 
++uci set nlbwmon.@nlbwmon[0].refresh_interval=2s
++uci commit nlbwmon
+ exit 0
