@@ -74,7 +74,6 @@
 </details>
 <details>
 <summary><b>├── 服务</b></summary>
-　├── AirPlay 2 音频接收<br/>
 　├── Aria2 下载<br/>
 　└── uHTTPd
 </details>
