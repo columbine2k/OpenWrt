@@ -73,14 +73,14 @@ set smartcase
 " === 个性 =======================================
 " 主题
 set termguicolors
-set background=dark
-colorscheme vim-material
+set background=light
+colorscheme one
 " 标记栏颜色
 hi! link SignColumn   LineNr
 hi! link ShowMarksHLl DiffAdd
 hi! link ShowMarksHLu DiffChange
 " 状态栏
-"set statusline=%<%f\ %h%m%r%=%k[%{(&fenc==\"\")?&enc:&fenc}%{(&bomb?\",BOM\":\"\")}]\ %-14.(%l,%c%V%)\ %P
+set statusline=%<%f\ %h%m%r%=%k[%{(&fenc==\"\")?&enc:&fenc}%{(&bomb?\",BOM\":\"\")}]\ %-14.(%l,%c%V%)\ %P
 set laststatus=2
 
 " === 键位 =======================================
@@ -101,6 +101,6 @@ vmap H <gv
 vmap L >gv
 
 " === 插件 =======================================
-let g:lightline = {
-\ 'colorscheme': 'material_vim'
-\ }
+"let g:lightline = {
+"\ 'colorscheme': 'one'
+"\ }

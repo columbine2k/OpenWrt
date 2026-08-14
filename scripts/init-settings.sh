@@ -4,6 +4,10 @@
 uci set luci.main.mediaurlbase='/luci-static/argon'
 uci commit luci
 
+# 设置主机名
+uci set system.@system[0].hostname='SohWRT'
+uci commit system
+
 # Disable IPV6 ula prefix
 # sed -i 's/^[^#].*option ula/#&/' /etc/config/network
 
