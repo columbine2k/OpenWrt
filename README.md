@@ -75,6 +75,7 @@
 <details>
 <summary><b>├── 服务</b></summary>
 　├── Aria2 下载<br/>
+　├── FileBrowser 文件浏览器<br/>
 　└── uHTTPd
 </details>
 <details>
@@ -89,7 +90,6 @@
 </details>
 <details>
 <summary><b>├── 网络存储</b></summary>
-　├── 文件浏览器<br/>
 　├── 网络共享（Samba4）<br/>
 　├── 挂载 SMB 网络共享<br/>
 　├── NFS 管理<br/>

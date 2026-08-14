@@ -14,6 +14,7 @@
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-netgear
 rm -rf feeds/luci/applications/luci-app-netdata
+rm -rf feeds/luci/applications/luci-app-argon-config
 
 # 可选开关（默认关闭，需要时取消注释）
 # sed -i 's/\/bin\/ash/\/usr\/bin\/zsh/g' package/base-files/files/etc/passwd
@@ -22,22 +23,34 @@ rm -rf feeds/luci/applications/luci-app-netdata
 # Git稀疏克隆，只克隆指定目录到本地
 function git_sparse_clone() {
   branch="$1" repourl="$2" && shift 2
-  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
+  git clone --depth=1 -b "$branch" --single-branch --filter=blob:none --sparse "$repourl" || {
+    echo "ERROR: 克隆失败 $repourl" >&2
+    exit 1
+  }
   repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
-  cd $repodir && git sparse-checkout set $@
-  mv -f $@ ../package
-  cd .. && rm -rf $repodir
+  cd "$repodir" || {
+    echo "ERROR: 进入目录失败 $repodir" >&2
+    exit 1
+  }
+  git sparse-checkout set "$@" || {
+    echo "ERROR: 稀疏检出失败 $repourl ($*)" >&2
+    exit 1
+  }
+  mv -f "$@" ../package || {
+    echo "ERROR: 移动 $* 到 package/ 失败" >&2
+    exit 1
+  }
+  cd .. && rm -rf "$repodir"
 }
 
 # 添加额外插件
-git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-git_sparse_clone main https://github.com/Lienol/openwrt-package luci-app-filebrowser
+git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff || exit 1
+git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata || exit 1
 # git_sparse_clone master https://github.com/syb999/openwrt-19.07.1 package/network/services/msd_lite
 
 # Themes
-git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
-git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
+git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon || exit 1
+git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config || exit 1
 
 # 在线用户
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
