@@ -13,7 +13,6 @@
 # 移除要替换的包（ImmortalWrt luci feed 同样自带这些包）
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-netgear
-rm -rf feeds/luci/applications/luci-app-netdata
 rm -rf feeds/luci/applications/luci-app-argon-config
 
 # 可选开关（默认关闭，需要时取消注释）
@@ -45,7 +44,6 @@ function git_sparse_clone() {
 
 # 添加额外插件
 git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff || exit 1
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata || exit 1
 
 # Themes
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon || exit 1
