@@ -1,0 +1,11 @@
+--- a/feeds/packages/utils/xfsprogs/Makefile	2026-08-13 19:14:22
++++ b/feeds/packages/utils/xfsprogs/Makefile	2026-08-13 19:15:37
+@@ -74,7 +74,7 @@
+ 	DEBUG=-DNDEBUG \
+ 	OPTIMIZER="$(TARGET_OPTIMIZATION)"
+ 
+-TARGET_CFLAGS += -DHAVE_MAP_SYNC $(if $(CONFIG_USE_MUSL),-D_LARGEFILE64_SOURCE)
++TARGET_CFLAGS += -DHAVE_MAP_SYNC -D_LARGEFILE64_SOURCE
+ TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lrt)
+ 
+ define Package/xfs-admin/install

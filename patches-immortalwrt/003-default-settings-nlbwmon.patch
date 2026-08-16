@@ -1,0 +1,10 @@
+--- a/package/emortal/default-settings/files/99-default-settings
++++ b/package/emortal/default-settings/files/99-default-settings
+@@ -36,5 +36,7 @@
+ 	fi
+ 	;;
+ esac
+ 
++uci set nlbwmon.@nlbwmon[0].refresh_interval=2s
++uci commit nlbwmon
+ exit 0

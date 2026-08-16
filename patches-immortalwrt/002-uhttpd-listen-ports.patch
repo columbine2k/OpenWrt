@@ -1,0 +1,17 @@
+--- a/package/network/services/uhttpd/files/uhttpd.config
++++ b/package/network/services/uhttpd/files/uhttpd.config
+@@ -4,9 +4,9 @@
+ 	# HTTP listen addresses, multiple allowed
+-	list listen_http	0.0.0.0:80
+-	list listen_http	[::]:80
++	list listen_http	0.0.0.0:1000
++	list listen_http	[::]:1000
+ 
+ 	# HTTPS listen addresses, multiple allowed
+-	# list listen_https	0.0.0.0:443
+-	# list listen_https	[::]:443
++	# list listen_https	0.0.0.0:1001
++	# list listen_https	[::]:1001
+ 
+ 	# Redirect HTTP requests to HTTPS if possible
+ 	option redirect_https	0
