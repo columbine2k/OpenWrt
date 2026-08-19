@@ -1,0 +1,7 @@
+#!/bin/sh
+# Transmission 默认配置目录/下载目录首次开机即创建，
+# 避免 procd ujail 只读根目录下 daemon 无法自建目录而启动失败
+mkdir -p /opt/transmission/download /opt/transmission/incomplete
+chmod 0755 /opt/transmission /opt/transmission/download /opt/transmission/incomplete
+chown -R root:transmission /opt/transmission 2>/dev/null || true
+exit 0

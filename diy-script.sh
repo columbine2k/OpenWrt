@@ -102,3 +102,11 @@ cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/
 mkdir -p feeds/packages/utils/dockerd/patches
 cp -f $GITHUB_WORKSPACE/scripts/001-dockerd-skip-missing-nested-executables.patch \
 	feeds/packages/utils/dockerd/patches/001-dockerd-skip-missing-nested-executables.patch
+
+# transmission：替换 init 脚本（原版只建 config_dir、jail 只读根目录下
+# daemon 无法自建下载目录，勾选启用后 9091 打不开），并首次开机创建默认目录
+mkdir -p files/etc/init.d files/etc/uci-defaults
+cp -f $GITHUB_WORKSPACE/scripts/transmission.init files/etc/init.d/transmission
+chmod +x files/etc/init.d/transmission
+cp -f $GITHUB_WORKSPACE/scripts/99-transmission-dirs files/etc/uci-defaults/99-transmission-dirs
+chmod +x files/etc/uci-defaults/99-transmission-dirs
