@@ -1,19 +1,18 @@
 #!/bin/bash
 
 # ============================================================
-# diy-script：编译前对 OpenWrt/LEDE 源码做定制
+# immortalwrt/diy.sh：基于 ImmortalWrt openwrt-25.12 的定制脚本
 #
-# 约定：
-#   - 对上游文件的具体修改一律做成补丁放在 patches/*.patch，
-#     本脚本统一用 git apply 应用（见下方“统一应用补丁”）
+# 与 lede/diy.sh（LEDE）完全独立，互不干扰：
+#   - 上游文件修改一律做成补丁放在 immortalwrt/patches/*.patch，
+#     本脚本统一用 git apply 应用
 #   - 只有批量/动态改动保留为脚本：插件克隆、Makefile 批量重写、
 #     编译日期版本号、主题默认值清理
 # ============================================================
 
-# 移除要替换的包
+# 移除要替换的包（ImmortalWrt luci feed 同样自带这些包）
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-netgear
-rm -rf feeds/luci/applications/luci-app-netdata
 rm -rf feeds/luci/applications/luci-app-argon-config
 
 # 可选开关（默认关闭，需要时取消注释）
@@ -45,8 +44,6 @@ function git_sparse_clone() {
 
 # 添加额外插件
 git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff || exit 1
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata || exit 1
-# git_sparse_clone master https://github.com/syb999/openwrt-19.07.1 package/network/services/msd_lite
 
 # Themes
 git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon || exit 1
@@ -56,10 +53,19 @@ git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/l
 git_sparse_clone main https://github.com/haiibo/packages luci-app-onliner
 chmod 755 package/luci-app-onliner/root/usr/share/onliner/setnlbw.sh
 
-# 修改版本为编译日期（动态内容，不能写成静态补丁）
+# 编译日期版本号（动态内容，不能写成静态补丁）。
+# ImmortalWrt 的 default-settings 不写 DISTRIB_REVISION，
+# 因此用独立 uci-defaults 在首次开机时写入 /etc/openwrt_release
 date_version=$(date +"%y.%m.%d")
-orig_version=$(cat "package/lean/default-settings/files/zzz-default-settings" | grep DISTRIB_REVISION= | awk -F "'" '{print $2}')
-sed -i "s/${orig_version}/R${date_version}/g" package/lean/default-settings/files/zzz-default-settings
+mkdir -p files/etc/uci-defaults
+cat > files/etc/uci-defaults/99-immortalwrt-version <<EOF
+#!/bin/sh
+# SohWrt (ImmortalWrt) 编译日期版本号
+sed -i '/^DISTRIB_REVISION=/d' /etc/openwrt_release
+echo "DISTRIB_REVISION='R${date_version}'" >> /etc/openwrt_release
+exit 0
+EOF
+chmod +x files/etc/uci-defaults/99-immortalwrt-version
 
 # 批量 Makefile 重写（面向多个动态克隆的包，保留脚本方式）
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
@@ -73,10 +79,10 @@ find package/luci-theme-*/* -type f -name '*luci-theme-*' -print -exec sed -i '/
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-# —— 统一应用补丁（patches/*.patch，路径相对 openwrt 根目录）——
+# —— 统一应用补丁（immortalwrt/patches/*.patch，路径相对 openwrt 根目录）——
 # 已应用过的补丁会被 git apply --reverse --check 识别并跳过，重复构建安全；
 # 真正冲突的补丁会直接报错退出，避免“悄悄漏改”
-_patch_dir="$GITHUB_WORKSPACE/patches"
+_patch_dir="$GITHUB_WORKSPACE/immortalwrt/patches"
 for _patch in "$_patch_dir"/*.patch; do
 	[ -f "$_patch" ] || continue
 	echo "Applying $(basename "$_patch")"
@@ -90,23 +96,13 @@ for _patch in "$_patch_dir"/*.patch; do
 	fi
 done
 
-# cgroupfs-mount 开机脚本整体替换（完整文件，直接复制而非补丁）
-_cgroupfs_init="feeds/packages/utils/cgroupfs-mount/files/cgroupfs-mount.init"
-if [ -f "$_cgroupfs_init" ]; then
-	cp -f "$_patch_dir/cgroupfs-mount.init" "$_cgroupfs_init"
-fi
-
 # hostapd / dockerd 的补丁走 OpenWrt 包自身的 patches/ 机制
 # （构建对应包时自动应用），因此单独复制而不是在上面的循环里打
-cp -f $GITHUB_WORKSPACE/scripts/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
+cp -f $GITHUB_WORKSPACE/shared/package-patches/hostapd/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
 mkdir -p feeds/packages/utils/dockerd/patches
-cp -f $GITHUB_WORKSPACE/scripts/001-dockerd-skip-missing-nested-executables.patch \
+cp -f $GITHUB_WORKSPACE/shared/package-patches/dockerd/001-dockerd-skip-missing-nested-executables.patch \
 	feeds/packages/utils/dockerd/patches/001-dockerd-skip-missing-nested-executables.patch
 
-# transmission：替换 init 脚本（原版只建 config_dir、jail 只读根目录下
-# daemon 无法自建下载目录，勾选启用后 9091 打不开），并首次开机创建默认目录
-mkdir -p files/etc/init.d files/etc/uci-defaults
-cp -f $GITHUB_WORKSPACE/scripts/transmission.init files/etc/init.d/transmission
-chmod +x files/etc/init.d/transmission
-cp -f $GITHUB_WORKSPACE/scripts/99-transmission-dirs files/etc/uci-defaults/99-transmission-dirs
-chmod +x files/etc/uci-defaults/99-transmission-dirs
+# 注：ImmortalWrt 25.12 的 dockerd 本来就不 select cgroupfs-mount，
+# feeds 里也没有 cgroupfs-mount 包，因此 LEDE 版的
+# cgroupfs-mount.init 替换和 008-dockerd-cgroupfs.patch 在这里不需要。

@@ -1,9 +1,9 @@
-name: X86_64 OpenWrt
+name: Rockchip LEDE
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: 0 19 * * *
+    - cron: 0 18 * * *
 
 permissions:
   contents: write
@@ -11,14 +11,13 @@ permissions:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  CONFIG_FILE: configs/x86_64.config
-  EXTRA_CONFIG: configs/extra.config
-  DIY_SCRIPT: diy-script.sh
-  CLASH_KERNEL: amd64
+  CONFIG_FILE: lede/configs/rockchip.config
+  EXTRA_CONFIG: shared/extra.config
+  DIY_SCRIPT: lede/diy.sh
   CACHE_TOOLCHAIN: true
   UPLOAD_BIN_DIR: false
   FIRMWARE_RELEASE: true
-  FIRMWARE_TAG: X86_64
+  FIRMWARE_TAG: Rockchip
   TZ: Asia/Shanghai
 
 jobs:
@@ -144,8 +143,6 @@ jobs:
       id: compile
       run: |
         cd $OPENWRT_PATH
-        mkdir -p files/etc/uci-defaults
-        cp $GITHUB_WORKSPACE/scripts/init-settings.sh files/etc/uci-defaults/99-init-settings
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
@@ -192,9 +189,9 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: ${{ env.FIRMWARE_PATH }}/*
         body: |
-          **This is OpenWrt Firmware for ${{ env.FIRMWARE_TAG }}**
+          **This is LEDE Firmware for ${{ env.FIRMWARE_TAG }}**
           ### 📒 固件信息
-          - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }}
+          - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }} (rk33xx, rk35xx)
           - ⚽ 固件源码: ${{ env.REPO_URL }}
           - 💝 源码分支: ${{ env.REPO_BRANCH }}
           - 🚀 内核版本: ${{ env.KERNEL }}

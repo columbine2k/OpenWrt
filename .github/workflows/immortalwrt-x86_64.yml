@@ -11,9 +11,9 @@ permissions:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: openwrt-25.12
-  CONFIG_FILE: configs/x86_64-immortalwrt.config
-  EXTRA_CONFIG: configs/extra.config
-  DIY_SCRIPT: diy-script-immortalwrt.sh
+  CONFIG_FILE: immortalwrt/configs/x86_64.config
+  EXTRA_CONFIG: shared/extra.config
+  DIY_SCRIPT: immortalwrt/diy.sh
   CACHE_TOOLCHAIN: true
   UPLOAD_BIN_DIR: false
   FIRMWARE_RELEASE: true
@@ -142,8 +142,6 @@ jobs:
       id: compile
       run: |
         cd $OPENWRT_PATH
-        mkdir -p files/etc/uci-defaults
-        cp $GITHUB_WORKSPACE/scripts/init-settings.sh files/etc/uci-defaults/99-init-settings
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT

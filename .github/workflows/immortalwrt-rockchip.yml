@@ -1,24 +1,23 @@
-name: Rockchip OpenWrt
+name: Rockchip ImmortalWrt
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: 0 18 * * *
+    - cron: 0 22 * * *
 
 permissions:
   contents: write
 
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
-  CONFIG_FILE: configs/rockchip.config
-  EXTRA_CONFIG: configs/extra.config
-  DIY_SCRIPT: diy-script.sh
-  CLASH_KERNEL: arm64
+  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: openwrt-25.12
+  CONFIG_FILE: immortalwrt/configs/rockchip.config
+  EXTRA_CONFIG: shared/extra.config
+  DIY_SCRIPT: immortalwrt/diy.sh
   CACHE_TOOLCHAIN: true
   UPLOAD_BIN_DIR: false
   FIRMWARE_RELEASE: true
-  FIRMWARE_TAG: Rockchip
+  FIRMWARE_TAG: Rockchip-ImmortalWrt
   TZ: Asia/Shanghai
 
 jobs:
@@ -35,9 +34,8 @@ jobs:
         echo "CPU核心数量: $(nproc)"
         echo -e "CPU型号信息:$(cat /proc/cpuinfo | grep -m1 name | awk -F: '{print $2}')\n"
         echo "--------------------------内存信息--------------------------"
-        echo "已安装内存详细信息:"
         free -h
-        echo "--------------------------硬盘信息--------------------------"
+        echo "--------------------------磁盘信息--------------------------"
         df -hT
 
     - name: Initialization Environment
@@ -144,8 +142,6 @@ jobs:
       id: compile
       run: |
         cd $OPENWRT_PATH
-        mkdir -p files/etc/uci-defaults
-        cp $GITHUB_WORKSPACE/scripts/init-settings.sh files/etc/uci-defaults/99-init-settings
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
@@ -169,7 +165,7 @@ jobs:
         cd $OPENWRT_PATH/bin/targets/*/*
         cat sha256sums
         cp $OPENWRT_PATH/.config build.config
-        mv -f $OPENWRT_PATH/bin/packages/*/*/*.ipk packages
+        mv -f $OPENWRT_PATH/bin/packages/*/*/*.apk packages
         tar -zcf Packages.tar.gz packages
         rm -rf packages feeds.buildinfo version.buildinfo
         echo "KERNEL=$(cat *.manifest | grep ^kernel | cut -d- -f2 | tr -d ' ')" >> $GITHUB_ENV
@@ -186,18 +182,19 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.FIRMWARE_RELEASE == 'true'
       uses: ncipollo/release-action@v1
       with:
-        name: R${{ env.DATE }} for ${{ env.FIRMWARE_TAG }}
+        name: R${{ env.DATE }} ImmortalWrt for ${{ env.FIRMWARE_TAG }}
         allowUpdates: true
         tag: ${{ env.FIRMWARE_TAG }}
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: ${{ env.FIRMWARE_PATH }}/*
         body: |
-          **This is OpenWrt Firmware for ${{ env.FIRMWARE_TAG }}**
+          **This is ImmortalWrt Firmware for ${{ env.FIRMWARE_TAG }}**
           ### 📒 固件信息
           - 💻 平台架构: ${{ env.DEVICE_TARGET }}-${{ env.DEVICE_SUBTARGET }} (rk33xx, rk35xx)
           - ⚽ 固件源码: ${{ env.REPO_URL }}
           - 💝 源码分支: ${{ env.REPO_BRANCH }}
           - 🚀 内核版本: ${{ env.KERNEL }}
+          - 📦 包管理器: APK (apk)
           - 🌐 默认地址: 192.168.0.200
           - 🔑 默认密码: password
           ### 🧊 固件版本
