@@ -29,7 +29,7 @@
 
 ## 固件特色 [![](https://img.shields.io/badge/-本项目固件特色-FFFFFF.svg)](#固件特色-)
 1. 固件每天定时自动编译，以确保获得最新体验
-2. 集成 Docker 与 Docker Compose 服务
+2. LEDE 固件集成 Docker 与 Docker Compose 服务（ImmortalWrt 线因 Docker 与 fw4/nftables 兼容性问题暂时不集成，待上游修复后恢复）
 3. 为旁路由优化设置
 
 

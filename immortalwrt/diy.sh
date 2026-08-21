@@ -96,13 +96,6 @@ for _patch in "$_patch_dir"/*.patch; do
 	fi
 done
 
-# hostapd / dockerd 的补丁走 OpenWrt 包自身的 patches/ 机制
+# hostapd 的补丁走 OpenWrt 包自身的 patches/ 机制
 # （构建对应包时自动应用），因此单独复制而不是在上面的循环里打
 cp -f $GITHUB_WORKSPACE/shared/package-patches/hostapd/011-fix-mbo-modules-build.patch package/network/services/hostapd/patches/011-fix-mbo-modules-build.patch
-mkdir -p feeds/packages/utils/dockerd/patches
-cp -f $GITHUB_WORKSPACE/shared/package-patches/dockerd/001-dockerd-skip-missing-nested-executables.patch \
-	feeds/packages/utils/dockerd/patches/001-dockerd-skip-missing-nested-executables.patch
-
-# 注：ImmortalWrt 25.12 的 dockerd 本来就不 select cgroupfs-mount，
-# feeds 里也没有 cgroupfs-mount 包，因此 LEDE 版的
-# cgroupfs-mount.init 替换和 008-dockerd-cgroupfs.patch 在这里不需要。
